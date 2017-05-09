@@ -25,10 +25,22 @@ Dir.foreach(target_location) do |temp_file|
 		temp_file.slice! '_'
 		temp_file.slice! '.csv'
 		
+		#absoluteLow = temp_stock['Low'].sort.detect{ |x| x.to_f > 0 }
+		#absoluteHigh = temp_stock['High'].sort.last
+
+		#puts 'low: ' + absoluteLow.to_s + ' high: ' + absoluteHigh.to_s
 
 		holding_arr.clear
 		holding_arr[0] = (temp_stock['High'].zip(temp_stock['Low']).map{ |x, y| x.to_f / y.to_f}).mean
-		holding_arr[1] = (temp_stock['High'].zip(temp_stock['Low']).map{ |x, y| x.to_f / y.to_f}).standard_deviation
+
+		tempArr = temp_stock['High'].zip(temp_stock['Low']).map{ |x, y| y.to_f > 0 ? x.to_f / y.to_f : 0 }
+		absoluteLow = tempArr.sort.detect{ |x| x.to_f > 0 }
+		absoluteHigh = tempArr.sort.last
+		tempArr = tempArr.map { |x| (absoluteHigh - absoluteLow == 0 || x.to_f - absoluteLow == 0) ? 0 : (x.to_f - absoluteLow) / (absoluteHigh - absoluteLow) }
+
+		#holding_arr[1] = (temp_stock['High'].zip(temp_stock['Low']).map{ |x, y| x.to_f / y.to_f}).standard_deviation
+		holding_arr[1] = tempArr.standard_deviation
+		
 		holding_arr[2] = temp_stock['Volume'].mean
 		tradingPrice = temp_stock['Low'].mean
 		holding_arr.map!{ |x| x == nil ? 0 : x}
